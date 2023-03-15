@@ -1,0 +1,154 @@
+﻿@page "/movie/{movieId}"
+
+@using web_movie_app.Data
+@inject AppService appservice
+@inject NavigationManager UriHelper
+
+<h1>web-movie-app</h1>
+<p>
+	Enter movie name/person name/tag name:
+	<br />
+	<br />
+	<input @bind="@appservice.searchString" type="text" placeholder="..." />
+	<input @onclick="(() => {UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
+</p>
+
+@if (currMovie != null)
+{
+	<table class="table">
+		<tbody style="border: thin">
+			<tr>
+				<th width="20%">
+					<img src="@currMovieData.imageurl" width="200" onerror="this.error=null; this.src='sonic.png';" />
+				</th>
+				<th>
+					<h3>
+						@currMovie.titles.First().title
+					</h3>
+					<p>imdb id: @currMovie.imdbId</p>
+					<br>
+					<br />
+					<p>Rating: @currMovie.rating</p>
+					<br>
+					<br />
+					<small>@currMovieData.plot</small>
+					@foreach (Tag t in currMovie.tags)
+					{
+						<a href="@(turl + t.tagId)">@t.name, </a>
+					}
+				</th>
+			</tr>
+		</tbody>
+	</table>
+
+	<table class="table">
+		<thead>
+			<tr>
+				<th width="50%">
+					<h3>Persons: </h3>
+				</th>
+				<th width="50%">
+					<h3>Top 10 related movies: </h3>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<th width="50%">
+					<table class="table">
+						<tbody style="border: thin">
+							@foreach (Category c in currMovie.categories)
+							{
+								<tr>
+									<th width="6%">
+										<img src="@personData[c.person.personId]" width="100" onerror="this.error=null; this.src='sonic.png';" />
+									</th>
+									<th>
+										<a href="@(purl + c.person.personId)">@c.person.name</a>
+										<small>imdb id: @c.person.personId</small>
+										<br>
+										<br />
+										<small>@c.category</small>
+									</th>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</th>
+				<th width="50%">
+					<table class="table">
+						<tbody style="border: thin">
+							@foreach (Movie top in currMovie.top10)
+							{
+								<tr>
+									<th width="6%">
+										<img src="@top10Data[top.imdbId]" width="100" onerror="this.error=null; this.src='sonic.png';" />
+									</th>
+									<th>
+										<a href="@(murl + top.imdbId)">
+											@top.titles.First().title
+										</a>
+										<small>imdb id: @top.imdbId</small>
+										<br>
+										<br />
+										<small>Rating: @top.rating</small>
+										<br>
+										<br />
+										<small>@top10Data[top.imdbId].plot</small>
+									</th>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</th>
+			</tr>
+		</tbody>
+	</table>
+}
+else
+{
+	<p><em>Loading...</em></p>
+}
+
+@code {
+	private string surl = "/search/";
+	private string murl = "/movie/";
+	private string purl = "/person/";
+	private string turl = "/tag/";
+
+	[Parameter]
+	public string? movieId { get; set; }
+	public Movie? currMovie { get; set; }
+	public MovieData currMovieData { get; set; } = new();
+
+	public Dictionary<string, MovieData> top10Data { get; set; } = new();
+	public Dictionary<string, string> personData { get; set; } = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (movieId != null)
+		{
+			foreach (var m in appservice.movieList)
+			{
+				if (m.imdbId == movieId)
+				{
+					currMovie = m;
+					currMovieData = appservice.movieData[m.imdbId];
+
+					break;
+				}
+			}
+
+			if (currMovie == null)
+			{
+				//code
+			}
+			else
+			{
+				var t = await appservice.GetMovieAndPersonData(currMovie.top10, currMovie.categories.Select(c => c.person).ToList());
+				top10Data = t.Item1;
+				personData = t.Item2;
+			}
+		}
+	}
+}

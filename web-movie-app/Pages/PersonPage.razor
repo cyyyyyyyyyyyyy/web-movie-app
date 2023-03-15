@@ -1,0 +1,108 @@
+﻿@page "/person/{personId}"
+
+<h3>PersonPage</h3>
+
+@using web_movie_app.Data
+@inject AppService appservice
+@inject NavigationManager UriHelper
+
+<h1>web-movie-app</h1>
+<p>
+	Enter movie name/person name/tag name:
+	<br />
+	<br />
+	<input @bind="@appservice.searchString" type="text" placeholder="..." />
+	<input @onclick="(() => {UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
+</p>
+
+@if (currPerson != null)
+{
+	<table class="table">
+		<tbody style="border: thin">
+			<tr>
+				<th width="20%">
+					<img src="@currPersonData" width="200" onerror="this.error=null; this.src='sonic.png';" />
+				</th>
+				<th>
+					<h3>
+						@currPerson.name
+					</h3>
+					<p>imdb id: @currPerson.personId</p>
+				</th>
+			</tr>
+		</tbody>
+	</table>
+	<table class="table">
+		<tbody>
+			@foreach (var c in currCategories)
+			{
+				<tr>
+					<th width="8%">
+						<img src="@moviesData[c.movie.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+					</th>
+					<th>
+						<a href="@(murl + c.movie.imdbId)">
+							@c.movie.titles.First().title
+						</a>
+						<small>imdb id: @c.movie.imdbId</small>
+						<br>
+						<br />
+						<small>@c.category</small>
+						<br>
+						<br />
+						<small>Rating: @c.movie.rating</small>
+						<br>
+						<br />
+						<small>@moviesData[c.movie.imdbId].plot</small>
+					</th>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+else
+{
+	<p><em>Loading...</em></p>
+}
+
+@code {
+	[Parameter]
+	public string? personId { get; set; }
+	private string surl = "/search/";
+	private string murl = "/movie/";
+
+	public Person? currPerson { get; set; }
+	public List<Category> currCategories { get; set; } = new();
+	public string currPersonData { get; set; } = "";
+
+	public Dictionary<string, MovieData> moviesData { get; set; } = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (personId != null)
+		{
+			foreach (Person p in appservice.personDictionary.Keys)
+			{
+				if (p.personId == personId)
+				{
+					currPerson = p;
+					currCategories = appservice.personDictionary[p];
+					currPersonData = appservice.personData[p.personId];
+
+					break;
+				}
+			}
+
+			if (currPerson != null)
+			{
+				var t = await appservice.GetMovieAndPersonData(currCategories.Select(c => c.movie).ToList(), new List<Person>());
+
+				moviesData = t.Item1;
+			}
+			else
+			{
+				//code
+			}
+		}
+	}
+}

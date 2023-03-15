@@ -1,0 +1,93 @@
+﻿@page "/tag/{tagId:int}"
+
+@using web_movie_app.Data
+@inject AppService appservice
+@inject NavigationManager UriHelper
+
+<h1>web-movie-app</h1>
+<p>
+	Enter movie name/person name/tag name:
+	<br />
+	<br />
+	<input @bind="@appservice.searchString" type="text" placeholder="..." />
+	<input @onclick="(() => {UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
+</p>
+
+@if (currTag != null)
+{
+	<table class="table">
+		<tbody style="border: thin">
+			<tr>
+				<th width="20%">
+					<img src="sonic.png" width="200" />
+				</th>
+				<th>
+					<h3>
+						@currTag.name
+					</h3>
+					<p>lens id: @currTag.tagId</p>
+				</th>
+			</tr>
+		</tbody>
+	</table>
+	<table class="table">
+		<tbody>
+			@foreach (var m in currTag.movies)
+			{
+				<tr>
+					<th style="width: 8%">
+						<img src="@moviesData[m.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+					</th>
+					<th>
+						<a href="@(murl + m.imdbId)">
+							@m.titles.First().title
+						</a>
+						<small>imdb id: @m.imdbId</small>
+						<br>
+						<br />
+						<small>Rating: @m.rating</small>
+						<br>
+						<br />
+						<small>@moviesData[m.imdbId].plot</small>
+					</th>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+else
+{
+	<p><em>Loading...</em></p>
+}
+
+@code {
+	[Parameter]
+	public int? tagId { get; set; }
+	private string surl = "/search/";
+	private string murl = "/movie/";
+
+	public Tag? currTag { get; set; }
+	public Dictionary<string, MovieData> moviesData { get; set; } = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (tagId != null)
+		{
+			foreach (Tag t in appservice.tagList)
+			{
+				if (t.tagId == tagId)
+				{
+					currTag = t;
+					break;
+				}
+			}
+
+			if (currTag != null)
+			{
+				var t = await appservice.GetMovieAndPersonData(currTag.movies, new List<Person>());
+
+				moviesData = t.Item1;
+			}
+		}
+	}
+}

@@ -1,0 +1,111 @@
+﻿@page "/search/{searchString}"
+
+@using web_movie_app.Data
+@inject AppService appservice
+@inject NavigationManager UriHelper
+
+<h1>web-movie-app</h1>
+<p>
+	Enter movie name/person name/tag name:
+	<br />
+	<br />
+	<input @bind="@appservice.searchString" type="text" placeholder="..." />
+	<input @onclick="(() => {UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
+</p>
+
+@if (!isLoading)
+{
+	<h3>Movies: </h3>
+	@foreach (Movie m in appservice.movieList)
+	{
+		/*if (m.titles.Count == 0)
+			continue;*/
+		<table class="table">
+			<tbody style="border: thin">
+				<tr>
+					<th width="8%">
+						<img src="@appservice.movieData[m.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+					</th>
+					<th>
+						<a href="@(murl + m.imdbId)">
+							@m.titles.First().title
+						</a>
+						<small>imdb id: @m.imdbId</small>
+						<br>
+						<br />
+						<small>Rating: @m.rating</small>
+						<br>
+						<br />
+						<small>@appservice.movieData[m.imdbId].plot</small>
+					</th>
+				</tr>
+			</tbody>
+		</table>
+	}
+	<h3>Persons: </h3>
+	@foreach (Person p in appservice.personDictionary.Keys)
+	{
+		<table class="table">
+			<tbody style="border: thin">
+				<tr>
+					<th width="8%">
+						<img src=@appservice.personData[p.personId] width="100" onerror="this.error=null; this.src='sonic.png';" />
+					</th>
+					<th>
+						<a href="@(purl + p.personId)">@p.name</a>
+						<small>imdb id: @p.personId</small>
+						<br>
+						<br />
+						<small>Person description?</small>
+					</th>
+				</tr>
+			</tbody>
+		</table>
+	}
+	<h3> Tags: </h3>
+	@foreach (Tag t in appservice.tagList)
+	{
+		<table class="table">
+			<tbody style="border: thin">
+				<tr>
+					<th width="8%">
+						<img src="sonic.png" width="100" />
+					</th>
+					<th>
+						<a href="@(turl + t.tagId)">@t.name</a>
+						<small>lens id: @t.tagId</small>
+						<br>
+						<br />
+						<small>Tag description?</small>
+					</th>
+				</tr>
+			</tbody>
+		</table>
+	}
+}
+else
+{
+	<p><em>Loading...</em></p>
+}
+
+@code {
+	private string surl = "/search/";
+	private string murl = "/movie/";
+	private string purl = "/person/";
+	private string turl = "/tag/";
+
+	[Parameter]
+	public string searchString { get; set; } = "";
+	private bool isLoading = true;
+
+	protected override async Task OnInitializedAsync()
+	{
+		appservice.searchString = searchString;
+		if (appservice.searchString != appservice.currSearchString)
+		{
+			await appservice.GetSearchReslults();
+		}
+		isLoading = false;
+	}
+	
+}
