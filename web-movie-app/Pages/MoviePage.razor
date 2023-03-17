@@ -94,7 +94,7 @@
 										<small>Rating: @top.rating</small>
 										<br>
 										<br />
-										<small>@top10Data[top.imdbId].plot</small>
+										<p style="overflow: hidden; max-width: 55ch; text-overflow: ellipsis; white-space: nowrap;">@top10Data[top.imdbId].plot</p>
 									</th>
 								</tr>
 							}
@@ -128,6 +128,7 @@ else
 	{
 		if (movieId != null)
 		{
+			bool fl = false;
 			foreach (var m in appservice.movieList)
 			{
 				if (m.imdbId == movieId)
@@ -135,20 +136,36 @@ else
 					currMovie = m;
 					currMovieData = appservice.movieData[m.imdbId];
 
+					fl = true;
 					break;
+				}
+			}
+			if (!fl)
+			{
+				foreach (var m in appservice.topMovieList)
+				{
+					if (m.imdbId == movieId)
+					{
+						currMovie = m;
+						currMovieData = appservice.topMovieData[m.imdbId];
+
+						break;
+					}
 				}
 			}
 
 			if (currMovie == null)
 			{
-				//code
+				currMovie = appservice.qb.MovieByIdQuery(movieId);
+				if (currMovie == null)
+					return;
+				var t1 = await appservice.GetMovieAndPersonData(new List<Movie> { currMovie }, new List<Person>());
+				currMovieData = t1.Item1.First().Value;
 			}
-			else
-			{
-				var t = await appservice.GetMovieAndPersonData(currMovie.top10, currMovie.categories.Select(c => c.person).ToList());
-				top10Data = t.Item1;
-				personData = t.Item2;
-			}
+
+			var t2 = await appservice.GetMovieAndPersonData(currMovie.top10, currMovie.categories.Select(c => c.person).ToList());
+			top10Data = t2.Item1;
+			personData = t2.Item2;
 		}
 	}
 }

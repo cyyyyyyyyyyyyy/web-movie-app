@@ -15,9 +15,9 @@
 	<input @onclick="(() => {UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
 </p>
 
-@if (appservice.topMovieList.Count != 0)
+@if (top10List.Count != 0)
 {
-	@foreach (Movie m in appservice.topMovieList)
+	@foreach (Movie m in top10List)
 	{
 		/*if (m.titles.Count == 0)
 			continue;*/
@@ -25,7 +25,7 @@
 			<tbody style="border: thin">
 				<tr>
 					<th width="8%">
-						<img src="@appservice.topMovieData[m.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+						<img src="@top10Data[m.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
 					</th>
 					<th>
 						<a href="@(murl + m.imdbId)">
@@ -37,7 +37,7 @@
 						<small>Rating: @m.rating</small>
 						<br>
 						<br />
-						<small>Movie description</small>
+						<p style="overflow: hidden; max-width: 110ch; text-overflow: ellipsis; white-space: nowrap;">@top10Data[m.imdbId].plot</p>
 					</th>
 				</tr>
 			</tbody>
@@ -53,13 +53,17 @@
 	private string surl = "/search/";
 	private string murl = "/movie/";
 
-	//public List<Movie>? top10List { get; set; } 
+	[Parameter]
+	public List<Movie> top10List { get; set; } = new();
+	public Dictionary<string, MovieData> top10Data { get; set; } = new();
 
 	protected override async Task OnInitializedAsync()
 	{
 		if (appservice.topMovieList.Count == 0)
 		{
-			await appservice.GetTop10(); /*top10List = appservice.topMovieList;*/ 
-		}		
+			await appservice.GetTop10(); 
+		}
+		top10List = appservice.topMovieList;
+		top10Data = appservice.topMovieData;
 	}
 }

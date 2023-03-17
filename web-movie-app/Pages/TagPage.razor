@@ -48,7 +48,7 @@
 						<small>Rating: @m.rating</small>
 						<br>
 						<br />
-						<small>@moviesData[m.imdbId].plot</small>
+						<p style="overflow: hidden; max-width: 110ch; text-overflow: ellipsis; white-space: nowrap;">@moviesData[m.imdbId].plot</p>
 					</th>
 				</tr>
 			}
@@ -82,12 +82,15 @@ else
 				}
 			}
 
-			if (currTag != null)
+			if (currTag == null)
 			{
-				var t = await appservice.GetMovieAndPersonData(currTag.movies, new List<Person>());
-
-				moviesData = t.Item1;
+				currTag = appservice.qb.TagByIdQuery(tagId.Value);
+				if (currTag == null)
+					return;
 			}
+
+			var t2 = await appservice.GetMovieAndPersonData(currTag.movies, new List<Person>());
+			moviesData = t2.Item1;
 		}
 	}
 }

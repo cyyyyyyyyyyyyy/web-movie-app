@@ -53,22 +53,21 @@ namespace web_movie_app.Data
 			var md = new Dictionary<string, MovieData>();
 			var pd = new Dictionary<string, string>();
 
-			string tempDesc = "Description.";
+			string tempDesc = "Description.aidsngasdfngsnadgljflsjdngadf;sj.gad;kngdsngndfnsgndksnnsngkdsfngldfskjnglsdkjfngkjdsfnlgndksfng";
 
 			//var api = new ApiLib("k_6ax952gb");
 			foreach (var m in movieList)
 			{
-				//var data = await api.TitleAsync(m.imdbId);
+				//TitleData data = await api.TitleAsync(m.imdbId);
 				md.Add(m.imdbId, new MovieData { imageurl = "", plot = tempDesc }/*{ imageurl = data.Image, plot = data.Plot }*/);
 			}
 			foreach (var p in personList)
 			{
-				//var data = await api.NameAsync(p.personId);
+				//NameData data = await api.NameAsync(p.personId);
 				pd.Add(p.personId, "" /*data.Image*/);
 			}
 
 			return new Tuple<Dictionary<string, MovieData>, Dictionary<string, string>>(md, pd);
-			//return new Tuple<Dictionary<string, MovieData>, Dictionary<string, string>>(new () , new() );
 		}
 		internal async Task GetTop10()
 		{
