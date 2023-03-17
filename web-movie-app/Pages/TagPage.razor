@@ -31,27 +31,42 @@
 		</tbody>
 	</table>
 	<table class="table">
+		<thead>
+			<tr>
+				<th width="100%">
+					<h3>@currTag.movies.Count movies:</h3>
+				</th>
+			</tr>
+		</thead>
 		<tbody>
-			@foreach (var m in currTag.movies)
-			{
-				<tr>
-					<th style="width: 8%">
-						<img src="@moviesData[m.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
-					</th>
-					<th>
-						<a href="@(murl + m.imdbId)">
-							@m.titles.First().title
-						</a>
-						<small>imdb id: @m.imdbId</small>
-						<br>
-						<br />
-						<small>Rating: @m.rating</small>
-						<br>
-						<br />
-						<p style="overflow: hidden; max-width: 110ch; text-overflow: ellipsis; white-space: nowrap;">@moviesData[m.imdbId].plot</p>
-					</th>
-				</tr>
-			}
+			<tr>
+				<th>
+					<table class="table">
+						<tbody>
+							@foreach (var m in currTag.movies)
+							{
+								<tr>
+									<th style="width: 8%">
+										<img src="@moviesData[m.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+									</th>
+									<th>
+										<a href="@(murl + m.imdbId)">
+											@m.titles.First().title
+										</a>
+										<small>imdb id: @m.imdbId</small>
+										<br>
+										<br />
+										<small>Rating: @m.rating</small>
+										<br>
+										<br />
+										<p style="overflow: hidden; max-width: 110ch; text-overflow: ellipsis; white-space: nowrap;">@moviesData[m.imdbId].plot</p>
+									</th>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</th>
+			</tr>
 		</tbody>
 	</table>
 }
@@ -73,24 +88,26 @@ else
 	{
 		if (tagId != null)
 		{
+			Tag? currTagTemp = null;
 			foreach (Tag t in appservice.tagList)
 			{
 				if (t.tagId == tagId)
 				{
-					currTag = t;
+					currTagTemp = t;
 					break;
 				}
 			}
 
-			if (currTag == null)
+			if (currTagTemp == null)
 			{
-				currTag = appservice.qb.TagByIdQuery(tagId.Value);
-				if (currTag == null)
+				currTagTemp = appservice.qb.TagByIdQuery(tagId.Value);
+				if (currTagTemp == null)
 					return;
 			}
 
-			var t2 = await appservice.GetMovieAndPersonData(currTag.movies, new List<Person>());
+			var t2 = await Task.Run(() => appservice.GetMovieAndPersonData(currTagTemp.movies, new List<Person>()));
 			moviesData = t2.Item1;
+			currTag = currTagTemp;
 		}
 	}
 }

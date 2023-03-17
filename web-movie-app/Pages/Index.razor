@@ -61,7 +61,7 @@
 	{
 		if (appservice.topMovieList.Count == 0)
 		{
-			await appservice.GetTop10(); 
+			await Task.Run(() => appservice.GetTop10());
 		}
 		top10List = appservice.topMovieList;
 		top10Data = appservice.topMovieData;

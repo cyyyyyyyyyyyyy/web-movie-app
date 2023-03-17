@@ -18,7 +18,7 @@ namespace web_movie_app.Data
 					.Where(m => m.rating >= 9)
 					.OrderByDescending(m => m.rating)
 					//.Include(m => m.tags)
-					//.Where(m => m.tags.Count > 0)
+					.Where(m => m.tags.Count > 0)
 					.Take(10)
 					.Include(m => m.titles)
 					.Where(m => m.titles.Count > 0)
@@ -27,7 +27,7 @@ namespace web_movie_app.Data
 					.Include(m => m.categories)
 						.ThenInclude(c => c.person)
 					.Include(m => m.tags)
-					//.AsSplitQuery()
+					.AsSplitQuery()
 					.ToList();
 			}
 
@@ -49,7 +49,7 @@ namespace web_movie_app.Data
 					.Include(m => m.tags)
 					.Include(m => m.categories)
 						.ThenInclude(c => c.person)
-					//.AsSplitQuery()
+					.AsSplitQuery()
 					.ToList();
 			}
 
@@ -131,6 +131,7 @@ namespace web_movie_app.Data
 				.Include(m => m.categories)
 					.ThenInclude(c => c.person)
 				.Include(m => m.tags)
+				.AsSplitQuery()
 				.SingleOrDefault();
 			}
 

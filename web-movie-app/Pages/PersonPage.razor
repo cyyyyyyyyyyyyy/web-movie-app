@@ -1,7 +1,5 @@
 ﻿@page "/person/{personId}"
 
-<h3>PersonPage</h3>
-
 @using web_movie_app.Data
 @inject AppService appservice
 @inject NavigationManager UriHelper
@@ -12,7 +10,7 @@
 	<br />
 	<br />
 	<input @bind="@appservice.searchString" type="text" placeholder="..." />
-	<input @onclick="(() => {UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
+	<input @onclick="(() => {currPerson = null; UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
 </p>
 
 @if (currPerson != null)
@@ -33,30 +31,45 @@
 		</tbody>
 	</table>
 	<table class="table">
+		<thead>
+			<tr>
+				<th width="100%">
+					<h3>@currCategories.Count movies:</h3>
+				</th>
+			</tr>
+		</thead>
 		<tbody>
-			@foreach (var c in currCategories)
-			{
-				<tr>
-					<th width="8%">
-						<img src="@moviesData[c.movie.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
-					</th>
-					<th>
-						<a href="@(murl + c.movie.imdbId)">
-							@c.movie.titles.First().title
-						</a>
-						<small>imdb id: @c.movie.imdbId</small>
-						<br>
-						<br />
-						<small>@c.category</small>
-						<br>
-						<br />
-						<small>Rating: @c.movie.rating</small>
-						<br>
-						<br />
-						<p style="overflow: hidden; max-width: 110ch; text-overflow: ellipsis; white-space: nowrap;">@moviesData[c.movie.imdbId].plot</p>
-					</th>
-				</tr>
-			}
+			<tr>
+				<th>
+					<table class="table">
+						<tbody>
+							@foreach (var c in currCategories)
+							{
+								<tr>
+									<th width="8%">
+										<img src="@moviesData[c.movie.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+									</th>
+									<th>
+										<a href="@(murl + c.movie.imdbId)">
+											@c.movie.titles.First().title
+										</a>
+										<small>imdb id: @c.movie.imdbId</small>
+										<br>
+										<br />
+										<small>@c.category</small>
+										<br>
+										<br />
+										<small>Rating: @c.movie.rating</small>
+										<br>
+										<br />
+										<p style="overflow: hidden; max-width: 110ch; text-overflow: ellipsis; white-space: nowrap;">@moviesData[c.movie.imdbId].plot</p>
+									</th>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</th>
+			</tr>
 		</tbody>
 	</table>
 }
@@ -81,11 +94,12 @@ else
 	{
 		if (personId != null)
 		{
+			Person? currPersonTemp = null;
 			foreach (Person p in appservice.personDictionary.Keys)
 			{
 				if (p.personId == personId)
 				{
-					currPerson = p;
+					currPersonTemp = p;
 					currCategories = appservice.personDictionary[p];
 					currPersonData = appservice.personData[p.personId];
 
@@ -93,20 +107,21 @@ else
 				}
 			}
 
-			if (currPerson == null)
+			if (currPersonTemp == null)
 			{
 				var t1 = appservice.qb.PersonByIdQuery(personId);
-				currPerson = t1.Item1;
-				if (currPerson == null)
+				currPersonTemp = t1.Item1;
+				if (currPersonTemp == null)
 					return;
 				currCategories = t1.Item2;
 
-				var t2 = await appservice.GetMovieAndPersonData(new List<Movie>(), new List<Person> { currPerson });
+				var t2 = await Task.Run(() => appservice.GetMovieAndPersonData(new List<Movie>(), new List<Person> { currPersonTemp }));
 				currPersonData = t2.Item2.First().Value;
 			}
 
-			var t = await appservice.GetMovieAndPersonData(currCategories.Select(c => c.movie).ToList(), new List<Person>());
+			var t = await Task.Run(() => appservice.GetMovieAndPersonData(currCategories.Select(c => c.movie).ToList(), new List<Person>()));
 			moviesData = t.Item1;
+			currPerson = currPersonTemp;
 		}
 	}
 }

@@ -10,7 +10,7 @@
 	<br />
 	<br />
 	<input @bind="@appservice.searchString" type="text" placeholder="..." />
-	<input @onclick="(() => {UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
+	<input @onclick="(() => {currMovie = null; UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
 </p>
 
 @if (currMovie != null)
@@ -32,6 +32,8 @@
 					<br>
 					<br />
 					<small>@currMovieData.plot</small>
+					<br>
+					<br />
 					@foreach (Tag t in currMovie.tags)
 					{
 						<a href="@(turl + t.tagId)">@t.name, </a>
@@ -45,7 +47,7 @@
 		<thead>
 			<tr>
 				<th width="50%">
-					<h3>Persons: </h3>
+					<h3>@currMovie.categories.Count Persons: </h3>
 				</th>
 				<th width="50%">
 					<h3>Top 10 related movies: </h3>
@@ -82,7 +84,7 @@
 							{
 								<tr>
 									<th width="6%">
-										<img src="@top10Data[top.imdbId]" width="100" onerror="this.error=null; this.src='sonic.png';" />
+										<img src="@top10Data[top.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
 									</th>
 									<th>
 										<a href="@(murl + top.imdbId)">
@@ -124,16 +126,17 @@ else
 	public Dictionary<string, MovieData> top10Data { get; set; } = new();
 	public Dictionary<string, string> personData { get; set; } = new();
 
-	protected override async Task OnInitializedAsync()
+	protected override async Task OnParametersSetAsync()
 	{
 		if (movieId != null)
 		{
+			Movie? currMovieTemp = null;
 			bool fl = false;
 			foreach (var m in appservice.movieList)
 			{
 				if (m.imdbId == movieId)
 				{
-					currMovie = m;
+					currMovieTemp = m;
 					currMovieData = appservice.movieData[m.imdbId];
 
 					fl = true;
@@ -146,7 +149,7 @@ else
 				{
 					if (m.imdbId == movieId)
 					{
-						currMovie = m;
+						currMovieTemp = m;
 						currMovieData = appservice.topMovieData[m.imdbId];
 
 						break;
@@ -154,18 +157,19 @@ else
 				}
 			}
 
-			if (currMovie == null)
+			if (currMovieTemp == null)
 			{
-				currMovie = appservice.qb.MovieByIdQuery(movieId);
-				if (currMovie == null)
+				currMovieTemp = appservice.qb.MovieByIdQuery(movieId);
+				if (currMovieTemp == null)
 					return;
-				var t1 = await appservice.GetMovieAndPersonData(new List<Movie> { currMovie }, new List<Person>());
+				var t1 = await Task.Run(() => appservice.GetMovieAndPersonData(new List<Movie> { currMovieTemp }, new List<Person>()));
 				currMovieData = t1.Item1.First().Value;
 			}
 
-			var t2 = await appservice.GetMovieAndPersonData(currMovie.top10, currMovie.categories.Select(c => c.person).ToList());
+			var t2 = await Task.Run(() => appservice.GetMovieAndPersonData(currMovieTemp.top10, currMovieTemp.categories.Select(c => c.person).ToList()));
 			top10Data = t2.Item1;
 			personData = t2.Item2;
+			currMovie = currMovieTemp;
 		}
 	}
 }
