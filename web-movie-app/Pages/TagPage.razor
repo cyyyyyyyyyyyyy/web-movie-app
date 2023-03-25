@@ -36,6 +36,9 @@
 				<th width="100%">
 					<h3>@currTag.movies.Count movies:</h3>
 				</th>
+				<th>
+					<input type="button" value="Load more..." />
+				</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -83,6 +86,8 @@ else
 
 	public Tag? currTag { get; set; }
 	public Dictionary<string, MovieData> moviesData { get; set; } = new();
+	//[Parameter]
+	//public int? page { get; set; }
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -107,7 +112,26 @@ else
 
 			var t2 = await Task.Run(() => appservice.GetMovieAndPersonData(currTagTemp.movies, new List<Person>()));
 			moviesData = t2.Item1;
+			//await Task.Run(() => GetNextPage(currTagTemp.movies, 0));
 			currTag = currTagTemp;
 		}
 	}
+	/*public async Task GetNextPage(List<Movie> movies, int page) // page = 0 - first page
+	{
+		var t2 = await Task.Run(() => appservice.GetMovieAndPersonData(movies.Skip(20*page).Take(20).ToList(), new List<Person>()));
+		Dictionary<string, MovieData>? currPageMoviesData = t2.Item1;
+		if (currPageMoviesData == null)
+			return;
+
+		foreach(var id in currPageMoviesData.Keys)
+		{
+			moviesData.Add(id, currPageMoviesData[id]);
+		}
+
+		page++;
+	}
+	protected override async void OnParametersSet()
+	{
+		return;
+	}*/
 }

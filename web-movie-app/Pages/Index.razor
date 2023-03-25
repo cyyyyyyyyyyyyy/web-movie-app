@@ -25,7 +25,9 @@
 			<tbody style="border: thin">
 				<tr>
 					<th width="8%">
-						<img src="@top10Data[m.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+						<div class="d-inline-flex">
+							<img src="@top10Data[m.imdbId].imageurl" width="100" />
+						</div>						
 					</th>
 					<th>
 						<a href="@(murl + m.imdbId)">

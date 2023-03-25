@@ -49,7 +49,8 @@ namespace web_movie_app.Data
 					.Include(m => m.tags)
 					.Include(m => m.categories)
 						.ThenInclude(c => c.person)
-					.AsSplitQuery()
+					//.Include(m => m.titles)
+					//.AsSplitQuery()
 					.ToList();
 			}
 

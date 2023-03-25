@@ -56,7 +56,7 @@
 						<small>imdb id: @p.personId</small>
 						<br>
 						<br />
-						<small>Person description?</small>
+						<small>@appservice.personDictionary[p].Count movies</small>
 					</th>
 				</tr>
 			</tbody>
@@ -69,14 +69,14 @@
 			<tbody style="border: thin">
 				<tr>
 					<th width="8%">
-						<img src="son.png" width="100"/> 
+						<img src="tag.jpg" width="100"/> 
 					</th>
 					<th>
 						<a href="@(turl + t.tagId)">@t.name</a>
 						<small>lens id: @t.tagId</small>
 						<br>
 						<br />
-						<small>Tag description?</small>
+						<small>@t.movies.Count movies</small>
 					</th>
 				</tr>
 			</tbody>
