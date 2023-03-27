@@ -19,7 +19,7 @@
 		<tbody style="border: thin">
 			<tr>
 				<th width="20%">
-					<img src="sonic.png" width="200" />
+					<img src="tag.jpg" width="200" />
 				</th>
 				<th>
 					<h3>
@@ -50,7 +50,7 @@
 							{
 								<tr>
 									<th style="width: 8%">
-										<img src="@moviesData[m.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+										<img src="@moviesData[m.imdbId].imageurl" width="100" onerror="this.error = null; this.src = 'aeroplane.jpg';" />
 									</th>
 									<th>
 										<a href="@(murl + m.imdbId)">
@@ -86,7 +86,7 @@ else
 
 	public Tag? currTag { get; set; }
 	public Dictionary<string, MovieData> moviesData { get; set; } = new();
-	//[Parameter]
+
 	public int page { get; set; }
 	[Parameter]
 	public bool IsPageOneLoaded { get; set; }

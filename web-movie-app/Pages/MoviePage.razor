@@ -19,7 +19,7 @@
 		<tbody style="border: thin">
 			<tr>
 				<th width="20%">
-					<img src="@currMovieData.imageurl" width="200" onerror="this.error=null; this.src='sonic.png';" />
+					<img src="@currMovieData.imageurl" width="200" onerror="this.error = null; this.src = 'aeroplane.jpg';" />
 				</th>
 				<th>
 					<h3>
@@ -63,7 +63,7 @@
 							{
 								<tr>
 									<th width="6%">
-										<img src="@personData[c.person.personId]" width="100" onerror="this.error=null; this.src='sonic.png';" />
+										<img src="@personData[c.person.personId]" width="100" onerror="this.error = null; this.src = 'aeroplane.jpg';" />
 									</th>
 									<th>
 										<a href="@(purl + c.person.personId)">@c.person.name</a>
@@ -84,7 +84,7 @@
 							{
 								<tr>
 									<th width="6%">
-										<img src="@top10Data[top.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+										<img src="@top10Data[top.imdbId].imageurl" width="100" onerror="this.error = null; this.src = 'aeroplane.jpg';" />
 									</th>
 									<th>
 										<a href="@(murl + top.imdbId)">

@@ -13,13 +13,13 @@
 	<input @onclick="(() => {currPerson = null; UriHelper.NavigateTo(surl + appservice.searchString, true);})" type="button" value="search" />
 </p>
 
-@if (currPerson != null)
+@if ((currPerson != null)&&(IsPageOneLoaded))
 {
 	<table class="table">
 		<tbody style="border: thin">
 			<tr>
 				<th width="20%">
-					<img src="@currPersonData" width="200" onerror="this.error=null; this.src='sonic.png';" />
+					<img src="@currPersonData" width="200"/>
 				</th>
 				<th>
 					<h3>
@@ -37,7 +37,7 @@
 					<h3>@currCategories.Count movies:</h3>
 				</th>
 				<th>
-					<input type="button" value="Load more..." />
+					<input @onclick="(() => {page++; GetNextPage();})" type="button" value="Load more..." />
 				</th>
 			</tr>
 		</thead>
@@ -46,11 +46,11 @@
 				<th>
 					<table class="table">
 						<tbody>
-							@foreach (var c in currCategories)
+							@foreach (var c in currCategories.Take((page + 1) * 20))
 							{
 								<tr>
 									<th width="8%">
-										<img src="@moviesData[c.movie.imdbId].imageurl" width="100" onerror="this.error=null; this.src='sonic.png';" />
+										<img src="@moviesData[c.movie.imdbId].imageurl" width="100" onerror="this.error = null; this.src = 'aeroplane.jpg';" />
 									</th>
 									<th>
 										<a href="@(murl + c.movie.imdbId)">
@@ -93,6 +93,10 @@ else
 
 	public Dictionary<string, MovieData> moviesData { get; set; } = new();
 
+	public int page { get; set; }
+	[Parameter]
+	public bool IsPageOneLoaded { get; set; }
+
 	protected override async Task OnInitializedAsync()
 	{
 		if (personId != null)
@@ -122,9 +126,30 @@ else
 				currPersonData = t2.Item2.First().Value;
 			}
 
-			var t = await Task.Run(() => appservice.GetMovieAndPersonData(currCategories.Select(c => c.movie).ToList(), new List<Person>()));
-			moviesData = t.Item1;
+			/*var t = await Task.Run(() => appservice.GetMovieAndPersonData(currCategories.Select(c => c.movie).ToList(), new List<Person>()));
+			moviesData = t.Item1;*/
+			page = 0;
+			IsPageOneLoaded = false;
 			currPerson = currPersonTemp;
+			await Task.Run(() => GetNextPage());
+		}
+	}
+
+	public void GetNextPage() // page = 0 - first page
+	{
+		if (currPerson != null) // maybe currCategories.Count != 0?
+		{
+			var t2 = Task.Run(() => appservice.GetMovieAndPersonData(currCategories.Select(c => c.movie).Skip(20 * page).Take(20).ToList(), new List<Person>()));
+			t2.Wait();
+			Dictionary<string, MovieData>? currPageMoviesData = t2.Result.Item1;
+			if (currPageMoviesData == null)
+				return;
+
+			foreach (var id in currPageMoviesData.Keys)
+			{
+				moviesData.Add(id, currPageMoviesData[id]);
+			}
+			IsPageOneLoaded = true;
 		}
 	}
 }

@@ -55,7 +55,7 @@ namespace web_movie_app.Data
 			var pd = new Dictionary<string, string>();
 			var notCachedPersonList = new List<Person>();
 			string tempDesc = "Description.aidsngasdfngsnadgljflsjdngadf;sj.gad;kngdsngndfnsgndksnnsngkdsfngldfskjnglsdkjfngkjdsfnlgndksfng";
-			string tempImg = "https://sun9-17.userapi.com/impf/c854324/v854324828/25c98d/HUwxh2oIzKQ.jpg?size=160x0&quality=90&sign=7f8625cd75cb370d596827e2bd1188a0";
+			string tempImg = "aeroplane.jpg";
 
 			foreach (Movie m in movieList)
 			{
@@ -72,14 +72,18 @@ namespace web_movie_app.Data
 					notCachedPersonList.Add(p);
 			}
 
-			//var api = new ApiLib("k_6ax952gb");
+			var api = new ApiLib("k_6ax952gb");
 
 			foreach (var m in notCachedMovieList)
 			{
 				//TitleData data = await api.TitleAsync(m.imdbId);
-				var tmpData = new MovieData { imageurl = tempImg, plot = tempDesc }/*{ imageurl = data.Image, plot = data.Plot }*/;
-				//OmdbApiMovie data = await GetOmdbMovieData(m.imdbId);
-				//var tmpData = new MovieData { imageurl = data.Poster, plot = data.Plot };
+				//var tmpData = new MovieData { imageurl = tempImg, plot = tempDesc }/*{ imageurl = data.Image, plot = data.Plot }*/;
+				OmdbApiMovie data = await GetOmdbMovieData(m.imdbId);
+				MovieData tmpData;
+				if (data.Poster != "N/A")
+					tmpData = new MovieData { imageurl = data.Poster, plot = data.Plot };
+				else
+					tmpData = new MovieData { imageurl = tempImg, plot = data.Plot };
 				md.Add(m.imdbId, tmpData);
 				cachedMovieData.Add(m.imdbId, tmpData);
 
@@ -87,8 +91,13 @@ namespace web_movie_app.Data
 			}
 			foreach (var p in notCachedPersonList)
 			{
-				//NameData data = await api.NameAsync(p.personId);
-				var tmpData = tempImg /*data.Image*/;
+				NameData data = await api.NameAsync(p.personId);
+				string tmpData;
+				if (data.Image != "")
+					tmpData = /*tempImg*/ data.Image;
+				else
+					tmpData = tempImg;
+
 				pd.Add(p.personId, tmpData);
 				cachedPersonData.Add(p.personId, tmpData);
 
@@ -150,10 +159,6 @@ namespace web_movie_app.Data
 					catch { }
 					reader.Close();
 				}
-			}
-			else
-			{
-				File.Create(QueriesCountPath);
 			}
 			using (var writer = new StreamWriter(QueriesCountPath, false))
 			{
