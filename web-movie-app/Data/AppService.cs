@@ -3,6 +3,7 @@ using IMDbApiLib;
 using IMDbApiLib.Models;
 using Microsoft.AspNetCore.Mvc.Razor.Infrastructure;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace web_movie_app.Data
 {
@@ -29,6 +30,8 @@ namespace web_movie_app.Data
 
 		internal Dictionary<string, MovieData> cachedMovieData = new();
 		internal Dictionary<string, string> cachedPersonData = new();
+
+		internal string QueriesCountPath = "C:\\github\\web-movie-app\\web-movie-app\\QueriesCount.txt";
 		internal async Task GetSearchReslults()
 		{
 			currSearchString = searchString;
@@ -44,6 +47,9 @@ namespace web_movie_app.Data
 		}
 		internal async Task<Tuple<Dictionary<string, MovieData>, Dictionary<string, string>> > GetMovieAndPersonData(List<Movie> movieList, List<Person> personList)
 		{
+			int imdbQueriesCount = 0;
+			int omdbQueriesCount = 0;
+
 			var md = new Dictionary<string, MovieData>();
 			var notCachedMovieList = new List<Movie>();
 			var pd = new Dictionary<string, string>();
@@ -70,14 +76,14 @@ namespace web_movie_app.Data
 
 			foreach (var m in notCachedMovieList)
 			{
-
 				//TitleData data = await api.TitleAsync(m.imdbId);
 				var tmpData = new MovieData { imageurl = tempImg, plot = tempDesc }/*{ imageurl = data.Image, plot = data.Plot }*/;
-				//OmdbApiMovie data = await GetMovieData(m.imdbId);
+				//OmdbApiMovie data = await GetOmdbMovieData(m.imdbId);
 				//var tmpData = new MovieData { imageurl = data.Poster, plot = data.Plot };
 				md.Add(m.imdbId, tmpData);
 				cachedMovieData.Add(m.imdbId, tmpData);
 
+				omdbQueriesCount++;
 			}
 			foreach (var p in notCachedPersonList)
 			{
@@ -85,8 +91,11 @@ namespace web_movie_app.Data
 				var tmpData = tempImg /*data.Image*/;
 				pd.Add(p.personId, tmpData);
 				cachedPersonData.Add(p.personId, tmpData);
+
+				imdbQueriesCount++;
 			}
 
+			await Task.Run(() => SerializeAmountOfQueriesToApi(imdbQueriesCount, omdbQueriesCount));
 			return new Tuple<Dictionary<string, MovieData>, Dictionary<string, string>>(md, pd);
 		}
 		internal async Task GetTop10()
@@ -97,7 +106,7 @@ namespace web_movie_app.Data
 			topMovieData = t.Item1;
 		}
 
-		internal async Task<OmdbApiMovie> GetMovieData(string movId)
+		internal async Task<OmdbApiMovie> GetOmdbMovieData(string movId)
 		{
 			string omdbKey = "783c5ac4";
 			string url = "http://www.omdbapi.com/?i=" + movId + "&plot=full&apikey=" + omdbKey;
@@ -123,6 +132,35 @@ namespace web_movie_app.Data
 			}
 
 			return new OmdbApiMovie();
+		}
+
+		internal void SerializeAmountOfQueriesToApi(int imdbCount, int omdbCount)
+		{
+			int fileImdbCount = imdbCount;
+			int fileOmdbCount = omdbCount;
+			if (File.Exists(QueriesCountPath))
+			{
+				using (var reader = File.OpenText(QueriesCountPath))
+				{
+					try
+					{
+						fileImdbCount += int.Parse(reader.ReadLine(), CultureInfo.InvariantCulture);
+						fileOmdbCount += int.Parse(reader.ReadLine(), CultureInfo.InvariantCulture);
+					}
+					catch { }
+					reader.Close();
+				}
+			}
+			else
+			{
+				File.Create(QueriesCountPath);
+			}
+			using (var writer = new StreamWriter(QueriesCountPath, false))
+			{
+				writer.WriteLine(fileImdbCount.ToString());
+				writer.WriteLine(fileOmdbCount.ToString());
+				writer.Close();
+			}
 		}
 	}
 }
